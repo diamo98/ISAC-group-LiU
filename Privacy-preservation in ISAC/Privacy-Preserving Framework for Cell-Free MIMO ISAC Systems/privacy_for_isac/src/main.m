@@ -1,16 +1,8 @@
 clc; clear; close all;
 
-% TODO: input-validering på alla klasser och refaktorera lite typ precoder
-% default i AccessPoint eller i SimulationEnvironment när APn:a de skapas?
+% This code is licensed under the GPLv2 license. If you use this code in any way for research that results in publications, please cite the referred article.
+% Creator of the code: Henrik Åkesson (henrik.akesson@liu.se)
 
-% TODO: Gör lite structs i SimulationEnvironment med t.ex kanalmatriser
-% tillsammans med användarna de avser i enstruct typ
-% struct UserData { User u; Mt X Mr complex double channelMatrix; }
-% Kanske till och med en matris per mottagar antenn för ifall det skulle
-% behövas senare + blir lite snyggare i estimateChannelCovariance
-
-% TODO: Kanske ändra struktur för lite konstigt att ändra på ett tillstånd
-% anonymt hela tiden?
 
 %% monte carlo trials random system model
 clear;
@@ -247,3 +239,4 @@ legend(["Without AP selection", "With AP selection"]);
 % axis([min(10*log10([sensingSinr1, sensingSinr2])), max(10*log10([sensingSinr1, sensingSinr2])), 0, 1e0]);
 % xlabel("Sensing SINR [dB]")
 % ylabel("Probability of detection");
+
