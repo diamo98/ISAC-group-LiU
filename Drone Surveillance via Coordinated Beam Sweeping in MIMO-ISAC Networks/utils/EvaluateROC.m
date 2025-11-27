@@ -1,31 +1,30 @@
-function [Pd_sorted_NC,Pfa_sorted_NC,Pd_sorted_WC,Pfa_sorted_WC] = EvaluateROC(mod_order,MC,len_point,rho_ssb_all,rcs_var_sim, ... 
+function [Pd_sorted_NC,Pfa_sorted_NC,Pd_sorted_WC,Pfa_sorted_WC,precoder_vec_pwr] = EvaluateROC(mod_order,MC,len_point,rho_ssb_all,rcs_var_sim, ... 
     precoder_vec,rcs_dis,J,M,H_all_fullloss,V,beta_clutter,precoderSSB_GoB,noise_var,H01,H02,H03,pwr_bgt_perAP_db,Peta)
 
 SSB_symbols =  qammod(randi([0,mod_order-1],MC,J,len_point),mod_order,UnitAveragePower=true); % [MC Q] can extend to [MC J Q]
 Sens_symbols =  qammod(randi([0,mod_order-1],MC,len_point),mod_order,UnitAveragePower=true); % [MC Q]
-pmin = max(max(rho_ssb_all)); pmin_dbm = 10*log10(pmin);
+pmin = max(max(rho_ssb_all)); 
 %pwr_bgt_perAP_db = 20; 
 pwr_bgt_perAP = 10.^(pwr_bgt_perAP_db/10);
 Sens_power_budget_mat = pwr_bgt_perAP - rho_ssb_all; %
 
 precoder_vec_pwr = zeros(M,J,len_point);
 for k=1:len_point % allocate power accoding to each point 'q'
-             precoder_vec_pwr(:,:,k) = precoder_vec(:,:,k)./vecnorm(precoder_vec(:,:,k), 2, 1) .* Sens_power_budget_mat(:,k)';
-end
-
-for q=1:len_point % Q iterate point
-    for mc=1:MC % MC rounds at each point
-        
-    end
+             precoder_vec_pwr(:,:,k) = precoder_vec(:,:,k)./vecnorm(precoder_vec(:,:,k), 2, 1) .* sqrt(Sens_power_budget_mat(:,k))';
 end
 
 T1_NC = zeros(len_point,MC);    % test statistics under H1
 T0_NC = zeros(len_point,MC);    % test statistics under H0
 T1_WC = zeros(len_point,MC);    % test statistics under H1
 T0_WC = zeros(len_point,MC);    % test statistics under H0
+T0_WC_sum_arr=zeros(MC,1);
+T1_WC_sum_arr=zeros(MC,1);
 
-for q=1:len_point % Q iterate point
-    for mc=1:MC % MC rounds at each point
+for mc=1:MC % MC rounds at each point
+    T0_WC_sum=0;
+    T1_WC_sum=0;
+    for q=1:len_point % Q iterate point
+    %for mc=1:MC % MC rounds at each point
                 if rcs_dis == 1 % Swerling 2 (flutuation every slot)
                     rcs1=sqrt(rcs_var_sim/2).*(randn()+1i*randn());
                     rcs2=sqrt(rcs_var_sim/2).*(randn()+1i*randn());
@@ -74,17 +73,22 @@ for q=1:len_point % Q iterate point
                 pwr_T0_NC = norm(y_beamformed_T0_NC)^2;
                 pwr_T1_NC = norm(y_beamformed_T1_NC)^2; 
 
-                T0_WC(q,mc) = pwr_T0_WC;
-                T1_WC(q,mc) = pwr_T1_WC; 
+                T0_WC_sum = T0_WC_sum+pwr_T0_WC;
+                T1_WC_sum = T1_WC_sum+pwr_T1_WC; 
+
                 T0_NC(q,mc) = pwr_T0_NC;
                 T1_NC(q,mc) = pwr_T1_NC; 
-    end
-end
+    end % points
+    T0_WC_sum_arr(mc)=T0_WC_sum;
+    T1_WC_sum_arr(mc)=T0_WC_sum;
+end % mc
 
 % ---- ROC computation ----
 % thresholds spanning both distributions
-Tmin_WC = min(min([T0_WC; T1_WC]));
-Tmax_WC = max(max([T0_WC; T1_WC]));
+%Tmin_WC = min(min([T0_WC; T1_WC]));
+%Tmax_WC = max(max([T0_WC; T1_WC]));
+Tmin_WC=min([T0_WC_sum_arr; T1_WC_sum_arr]);
+Tmax_WC=max([T0_WC_sum_arr; T1_WC_sum_arr]);
 Tmin_NC = min(min([T0_NC; T1_NC]));
 Tmax_NC = max(max([T0_NC; T1_NC]));
 nTh  = 500;
@@ -99,20 +103,21 @@ for k = 1:nTh
     tau_WC = taus_WC(k);
     tau_NC = taus_NC(k);
 
-    Pd_arr_WC = sum(T1_WC > tau_WC);
-    Pd_WC(k)  = mean(Pd_arr_WC > 0);  % P_D = Pr(T > tau | H1) % one detect the whole sweep is detected
-    Pfa_arr_WC = sum(T0_WC > tau_WC);
-    Pfa_WC(k) = mean(Pfa_arr_WC > 0);  % P_FA = Pr(T > tau | H0)
+    % Pd_arr_WC = sum(T1_WC > tau_WC);
+    % Pd_WC(k)  = mean(Pd_arr_WC > 0);  % P_D = Pr(T > tau | H1) % one detect the whole sweep is detected
+    % Pfa_arr_WC = sum(T0_WC > tau_WC);
+    % Pfa_WC(k) = mean(Pfa_arr_WC > 0);  % P_FA = Pr(T > tau | H0)
+    % 
+    % Pd_arr_NC = sum(T1_NC > tau_NC); 
+    % Pd_NC(k)  = mean(Pd_arr_NC > 0); % P_D = Pr(T > tau | H1) % one detect the whole sweep is detected
+    % Pfa_arr_NC = sum(T0_NC > tau_NC); 
+    % Pfa_NC(k) = mean(Pfa_arr_NC > 0); % P_FA = Pr(T > tau | H0)
 
-    Pd_arr_NC = sum(T1_NC > tau_NC); 
-    Pd_NC(k)  = mean(Pd_arr_NC > 0); % P_D = Pr(T > tau | H1) % one detect the whole sweep is detected
-    Pfa_arr_NC = sum(T0_NC > tau_NC); 
-    Pfa_NC(k) = mean(Pfa_arr_NC > 0); % P_FA = Pr(T > tau | H0)
-
-     % Pd_WC(k)  = mean(mean(T1_WC > tau_WC));  % P_D = Pr(T > tau | H1)
-     % Pfa_WC(k) = mean(mean(T0_WC > tau_WC));  % P_FA = Pr(T > tau | H0)
-     % Pd_NC(k)  = mean(mean(T1_NC > tau_NC));  % P_D = Pr(T > tau | H1)
-     % Pfa_NC(k) = mean(mean(T0_NC > tau_NC));  % P_FA = Pr(T > tau | H0)
+     Pd_WC(k)  = (mean(T1_WC_sum_arr > tau_WC));  % P_D = Pr(T > tau | H1)
+     Pfa_WC(k) = (mean(T0_WC_sum_arr > tau_WC));  % P_FA = Pr(T > tau | H0)
+     
+     Pd_NC(k)  = mean(mean(T1_NC > tau_NC));  % P_D = Pr(T > tau | H1)
+     Pfa_NC(k) = mean(mean(T0_NC > tau_NC));  % P_FA = Pr(T > tau | H0)
 end
 
 [Pfa_sorted_NC, idx_NC] = sort(Pfa_NC, 'ascend');

@@ -31,8 +31,11 @@ function [H_all,H_all_fullloss,H01,H02,H03] = Gen_Hi(M,num_points_tot,h_pi_2_apr
     direct_r2 = norm(AP_positions(:,end)-AP_positions(:,2));
     direct_r3 = norm(AP_positions(:,end)-AP_positions(:,3));
     
-    H01 = h_direct_ari(:,1)*conj(h_direct_dep(:,1)').*sqrt(lambda^2/(4*pi*direct_r1)^2);
-    H02 = h_direct_ari(:,2)*conj(h_direct_dep(:,2)').*sqrt(lambda^2/(4*pi*direct_r2)^2);
-    H03 = h_direct_ari(:,3)*conj(h_direct_dep(:,3)').*sqrt(lambda^2/(4*pi*direct_r3)^2);
+    %H01 = h_direct_ari(:,1)*conj(h_direct_dep(:,1)').*sqrt(lambda^2/(4*pi*direct_r1)^2).*exp(-1i*2*pi*fc*direct_r1/light_speed);
+    %H02 = h_direct_ari(:,2)*conj(h_direct_dep(:,2)').*sqrt(lambda^2/(4*pi*direct_r2)^2).*exp(-1i*2*pi*fc*direct_r2/light_speed);
+    %H03 = h_direct_ari(:,3)*conj(h_direct_dep(:,3)').*sqrt(lambda^2/(4*pi*direct_r3)^2).*exp(-1i*2*pi*fc*direct_r3/light_speed);
+    H01 = h_direct_ari(:,1)*conj(h_direct_dep(:,1)').*sqrt(1/(direct_r1)^2).*exp(-1i*2*pi*fc*direct_r1/light_speed);
+    H02 = h_direct_ari(:,2)*conj(h_direct_dep(:,2)').*sqrt(1/(direct_r2)^2).*exp(-1i*2*pi*fc*direct_r2/light_speed);
+    H03 = h_direct_ari(:,3)*conj(h_direct_dep(:,3)').*sqrt(1/(direct_r3)^2).*exp(-1i*2*pi*fc*direct_r3/light_speed);
 
 end

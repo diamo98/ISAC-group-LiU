@@ -26,6 +26,6 @@ function [AP_positions,point_positions] = setup_cart(r,z,point_row,point_col,poi
         
         scatter3(point_positions(1,:),point_positions(2,:),point_positions(3,:),'.k')
         legend('AP-j','AP-r','Points')
-        xlim([-20,100]),ylim([-20,160]),zlim([0,50]) 
+        xlim([-20,max(AP_positions(1,:)+20)]),ylim([-20,max(AP_positions(2,:))+20]),zlim([0,50]) 
     end
 end
