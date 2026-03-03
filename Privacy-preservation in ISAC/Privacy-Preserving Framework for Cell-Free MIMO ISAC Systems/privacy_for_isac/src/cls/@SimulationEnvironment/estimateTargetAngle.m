@@ -44,6 +44,8 @@ for i = 1:numel(obj.transmitAps)
     R = correctX*correctX';
 
     meanEstR = 0;
+    %TODO: Ganska fult, förutsätter att estimateChannelCovariance har körts
+    %först för annars finns inte indexen...
     for k = 1:nSymbols
         % normalized
         meanEstR = meanEstR + obj.estimatedR{i}{k}./max(obj.estimatedR{i}{k}(:));

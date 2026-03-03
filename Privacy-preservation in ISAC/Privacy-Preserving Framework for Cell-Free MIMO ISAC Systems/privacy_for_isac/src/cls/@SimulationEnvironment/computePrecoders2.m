@@ -1,4 +1,4 @@
-function [cvg] = computePrecoders(obj, maxIts, threshold, maxPower, ueSinrConstraint)
+function [cvg] = computePrecoders2(obj, maxIts, threshold, maxPower, ueSinrConstraint, sensingSinrConstraint)
 %COMPUTEPRECODERS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -7,7 +7,7 @@ function [cvg] = computePrecoders(obj, maxIts, threshold, maxPower, ueSinrConstr
 
 
     % max power per ap
-    maxP = maxPower;%10^(50/10)/1000; % from  50dBm
+    maxP = maxPower;%10^(50/10)/1000; % from 50dBm
 
     %threshold for the communication
     sinrUeMin = ueSinrConstraint;%10^(3/10); % 3dB
@@ -71,14 +71,30 @@ function [cvg] = computePrecoders(obj, maxIts, threshold, maxPower, ueSinrConstr
             % end
             
             % sinrSTot = sinrSTot / (width(signal)*M*obj.noiseVar);
-            sinrSTot = 0;
-            for j = 1:nRAps                
-                sinrSTot = sinrSTot + trace(real(signal'*(2*prevW'*ATotTot(:,:,j)*(W-prevW) + prevW'*ATotTot(:,:,j)*prevW)*signal)...
-                    /(width(signal)*nRAps*M*obj.noiseVar));
+            MI_tot = 0;
+            xs = W(:, end)*obj.sSignal;
+            for k = 1:nUsers
+                hUser = reshape(obj.cH(k,:,:),1,[])';
+                tmp_MI_tot = 0;
+                MI_ue = xs'*hUser;
+                for n = 1:numel(obj.sSignal)
+                    tmp_MI_tot = tmp_MI_tot + pow_abs(MI_ue(n), 2);
+                end
+
+                MI_tot = MI_tot + tmp_MI_tot;
             end
 
-            maximize sinrSTot
+
+            minimize MI_tot
             subject to
+                % sensing sinr constraint
+                sinrSTot = 0;
+                for j = 1:nRAps                
+                    sinrSTot = sinrSTot + trace(real(signal'*(2*prevW'*ATotTot(:,:,j)*(W-prevW) + prevW'*ATotTot(:,:,j)*prevW)*signal)...
+                        /(width(signal)*nRAps*M*obj.noiseVar));
+                end
+                sinrSTot >= sensingSinrConstraint;
+
                 % User SINR constraint
                 for k = 1:nUsers
                     hUser = reshape(obj.cH(k,:,:),1,[])';

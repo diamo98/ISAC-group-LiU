@@ -15,7 +15,9 @@ function [] = optimizeConfiguration(obj, maxIts, threshold, maxPower, ueSinrCons
     it = 0;
     % Extreme case when two APs are exatcly opposite e.g.(100, 50) and 
     % (50, 100) they would trigger while loop to stop?
+    tmpcell = [];
     while ~all(ismember([prevReceivers.pos], [tmpSimEnv.receiverAps.pos]), 'all')
+        tmpcell = [tmpcell {[tmpSimEnv.receiverAps.pos]}];
         it = it + 1;
         tmpSimEnv.computePrecoders(maxIts, threshold, maxPower, ueSinrConstraint);
     
@@ -45,12 +47,13 @@ function [] = optimizeConfiguration(obj, maxIts, threshold, maxPower, ueSinrCons
         sortedMIs = sort(mIs);
         sortedMIs = sortedMIs(end-nRAps+1:end);
         [~, I] = ismember(sortedMIs, mIs);
-    
+   
         prevReceivers = tmpSimEnv.receiverAps;
         tmpSimEnv.receiverAps = tmpSimEnv.transmitAps(I);
         tmpSimEnv.transmitAps(I) = [];
         tmpSimEnv.transmitAps = [tmpSimEnv.transmitAps, tmpSimEnv.receiverAps];
-        tmpSimEnv.generateChannelProperties();
+        tmpSimEnv.generateChannelProperties(); % adds element of randomness 
+        % since everything changes somewhat with new channel coefficients...
         if it > 50
             disp("Selection didnt converge");
             break;

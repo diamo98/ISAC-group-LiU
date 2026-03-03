@@ -185,7 +185,8 @@ classdef SimulationEnvironment < handle & matlab.mixin.Copyable
         [] = generateSignal(obj, nSymbols, modulationOrder)
         [] = generateChannelProperties(obj, plExp)
         [] = optimizeConfiguration(obj, maxIts, threshold, maxPower, ueSinrConstraint);
-        [] = computePrecoders(obj, maxIts, threshold, maxPower, ueSinrConstraint)
+        [cvg] = computePrecoders(obj, maxIts, threshold, maxPower, ueSinrConstraint)
+        [cvg] = computePrecoders2(obj, maxIts, threshold, maxPower, ueSinrConstraint, sensingSinrConstraint);
         [] = estimateChannelCovariance(obj, maxIts, threshold, channelEstVar)
         [] = estimateTargetAngle(obj)
         [pos] = estimateTargetPositionGrid(obj, cellSize)

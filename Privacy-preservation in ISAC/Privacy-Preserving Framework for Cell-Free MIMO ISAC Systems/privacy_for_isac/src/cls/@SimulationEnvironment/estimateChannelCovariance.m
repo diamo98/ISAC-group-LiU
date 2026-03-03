@@ -9,7 +9,7 @@ function [] = estimateChannelCovariance(obj, maxIts, threshold, channelEstVar)
     % har brytts om här?
     % 3.
     hEstVar = channelEstVar;%1e-10;%1e-2; % gör om till argument
-    dOF = 10; % degrees of freedom, gör om till argument.
+    dOF = 10; % degrees of freedom, gör om till argument. startläge
     % flytta till User? :/
 
     M = obj.transmitAps.nAntennas;
@@ -32,11 +32,11 @@ function [] = estimateChannelCovariance(obj, maxIts, threshold, channelEstVar)
             obj.generateChannelProperties();
             for i = 1:nSymbols
     
-                % TODO: What is happening with end-1??????? Världens
+                % TODO: end-1... Världens
                 % fiasko, men kanalerna görs separat för kommunikation och
                 % sensing så -1 måste varit en fulfix för att
                 % kommunikationskanalkeofficienterna skulle funka för både
-                % (nästan) alla kommunikationssignalr same sensing
+                % (nästan) alla kommunikationssignaler samma för sensing
                 % signalen...
                 % Eller för att man antas ta bort sin egen signal som
                 % adversary ur precodern????? För funkar i optimize?
@@ -72,6 +72,7 @@ function [] = estimateChannelCovariance(obj, maxIts, threshold, channelEstVar)
                     % calculate omega and E(q(H))
                     omega = inv((1/hEstVar)*eye(M) + (uMean/obj.noiseVar)*(xEst*xEst'));
                     eHEst = (omega*((1/hEstVar)*hEst' + (uMean/obj.noiseVar)*(xEst*y')))';
+                    hEst = eHEst;
                     V = chol(real(M*omega));
                     %xEst = min(norm(y-eHEst*xEst)^2, norm(V*xEst)^2);  eq 29?
     
@@ -81,6 +82,13 @@ function [] = estimateChannelCovariance(obj, maxIts, threshold, channelEstVar)
                     Htot = [eHEst;V];
                     yTot = [y; zeros(M, 1)];
                     xEst = (Htot'*Htot)\Htot'*yTot;
+
+                    % disp(dOF)
+                    % dOF_fun = @(v) (real(log(v/2) + 1 - psi(v/2) + log(uMean) - 1/(2*beta) - alpha/beta));
+                    % %disp(dOF_fun(0.1))
+                    % %disp(dOF_fun(100));
+                    % dOF = fzero(dOF_fun, [0.0001, 100000]);
+                    % disp(dOF);
                     %hEst = eHEst; % hEst updateras aldrig i eHEst
                     %uttrycket
 
