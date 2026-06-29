@@ -10,4 +10,4 @@ Palatip Jopanya, Diana P. M. Osorio, and Erik G. Larsson, "Drone Surveillance vi
 
 # License and referencing
 
-This code is licensed under the GPLv2 license. If you use this code in any way for research that results in publications, please cite the above article. The article is available on
+This code is licensed under the GPLv2 license. If you use this code in any way for research that results in publications, please cite the above article. The article is available on https://arxiv.org/pdf/2601.08483
